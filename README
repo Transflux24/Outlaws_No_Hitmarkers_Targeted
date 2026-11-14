@@ -1,0 +1,223 @@
+# Star Wars Outlaws — Targeted Hitmarker Removal
+
+An unofficial community test build that removes outgoing weapon hit markers
+while preserving the native crosshair, ammunition, heat, charge, and
+Super Cooling interface.
+
+> [!IMPORTANT]
+> This is a partially tested technical preview, not an official update to the
+> original mod. It is being shared for review and potential adoption by the
+> original author. See [Credits and permissions](#credits-and-permissions).
+
+## Overview
+
+The existing **Disable Hitmarkers** mod uses zero-byte overrides for complete
+weapon UI graph files. That reliably removes the hit markers, but also removes
+the crosshair and UI features tied to those graphs.
+
+This version instead uses valid graphs extracted from the current PC game
+files. In every supported graph, it redirects only two compiled feedback
+setters to the graph's existing constant-false value:
+
+- `Has Dealt Damage` — ordinary body, head, armor, and weak-point feedback
+- `Fatal` — the horizontal kill marker
+
+The underlying `DamageDealt` event and all other outputs remain unchanged.
+This is a loose-file mod; it contains no DLL, executable, runtime hook, or
+background process.
+
+## Download
+
+Download the newest test archive from the repository's
+[Releases page](../../releases).
+
+Current test asset:
+
+- Version: `v0.1-test`
+- Archive: `Disable Hitmarkers - Targeted Weapon Batch v0.1-test.zip`
+- SHA-256: `83FCEB8DD02735EBBA752D59250A080CAFF9C6CDE9A05D3F3AA3BE42C2FDD49A`
+
+## Requirements
+
+- **Star Wars Outlaws** on PC
+- A loose-file-capable Snowdrop mod loader, such as the loader used by the
+  original Disable Hitmarkers mod
+
+Do not enable this alongside the original Disable Hitmarkers files or another
+mod that replaces the same weapon graphs.
+
+## Installation
+
+### Mod Organizer 2
+
+1. Install the release ZIP as a normal mod.
+2. Confirm that `helix` is at the archive's root.
+3. Enable the mod and allow it to win conflicts with older hitmarker-removal
+   files.
+
+### Manual installation
+
+1. Extract the release ZIP.
+2. Copy the included `helix` folder into the Star Wars Outlaws game folder.
+3. Ensure your Snowdrop mod loader is installed and loose-file loading is
+   enabled.
+
+To uninstall, disable the mod in your mod manager or remove only the loose
+files supplied by this archive.
+
+## Included coverage
+
+The test build contains 16 targeted weapon graphs.
+
+### Kay's blaster
+
+- Base/generic blaster
+- Normal plasma
+- Heavy plasma
+- Repeater plasma
+- Standard charge-up
+- Concussion charge-up
+- Phase-pulse charge-up
+- Standard ion
+- Ion blast
+
+### Pickup weapons
+
+- Assault rifle — confirmed to cover the E-11
+- Burst assault rifle
+- Generic rifle
+- Marksman rifle
+- Charge-up marksman rifle
+- Myrmite rifle
+- Rotary cannon
+
+The charge-up marksman-rifle graph contains two independent damage-feedback
+branches. Both ordinary/fatal setter pairs are patched.
+
+<details>
+<summary>Included graph filenames</summary>
+
+- `crosshair_blaster.muigraph`
+- `crosshair_pistol_blaster_heavy_overheat.muigraph`
+- `crosshair_pistol_blaster_overheat.muigraph`
+- `crosshair_pistol_blaster_repeater_overheat.muigraph`
+- `crosshair_pistol_chargeup_concussion_blast_overheat.muigraph`
+- `crosshair_pistol_chargeup_overheat.muigraph`
+- `crosshair_pistol_chargeup_phasepulse_overheat.muigraph`
+- `crosshair_pistol_ion_blast_overheat.muigraph`
+- `crosshair_pistol_ion_overheat.muigraph`
+- `crosshair_assault_rifle_ammunition.muigraph`
+- `crosshair_burst_assault_rifle_ammunition.muigraph`
+- `crosshair_rifle_ammunition.muigraph`
+- `crosshair_marksmanrifle_ammunition.muigraph`
+- `crosshair_marksmanrifle_chargeup_ammunition.muigraph`
+- `crosshair_myrmite_rifle_ammunition.muigraph`
+- `crosshair_rotarycannon.muigraph`
+
+</details>
+
+## Intentionally excluded and known gaps
+
+- `crosshair_grenadelauncher_ammunition.muigraph` does not contain the same
+  `DamageDealt` ordinary/fatal gates and requires separate research.
+- `hud_combat_damage_direction.muigraph` controls incoming-damage direction,
+  not outgoing weapon hit markers, so this build does not replace it.
+- The following additional variants are known to exist but were not available
+  in the current extracted vanilla corpus and are not covered yet:
+  - `crosshair_burst_assault_rifle_rokana_raider_charge_ammunition.muigraph`
+  - `crosshair_pistol_ion_shock_overheat.muigraph`
+
+Please report any other weapon that still displays hit or fatal markers.
+
+## Test status
+
+Verified in game:
+
+- First two tiers of all three Kay blaster slots, including charge behavior
+- E-11, with normal crosshair and ammunition UI
+- DLT-A20 Sniper, both scoped in and scoped out
+- Combined-build startup, loading, and regression checks
+
+The DLT-A20's exact graph assignment has not been isolated, so its result is
+recorded as functional batch coverage rather than a confirmed filename map.
+
+Not directly verified yet:
+
+- Third-tier Kay configurations
+- Most individual pickup-weapon variants
+- Known gaps listed above
+
+## Compatibility
+
+This mod conflicts at the file level with anything that replaces one of the
+16 included `.muigraph` files. Whichever mod wins the loose-file conflict will
+determine the result.
+
+Do not combine it with the original zero-file Disable Hitmarkers package. The
+original package will remove the same UI graphs entirely if it wins the
+conflict.
+
+## Validation
+
+Every included graph is guarded by its exact filename and vanilla SHA-256.
+The build process then verifies that:
+
+- Each `DamageDealt`, `Has Dealt Damage`, `Fatal`, and constant-false target is
+  structurally unique.
+- Only the intended setter records change.
+- All `DamageDealt` output records remain byte-identical.
+- Strings, descriptors, pool counts, graph layouts, and file sizes remain
+  unchanged.
+- Every emitted graph reparses successfully.
+- The complete research tool currently passes 34 automated tests.
+
+Across the 16 files, 34 compiled setter records are redirected. Fifteen files
+contain one ordinary/fatal pair; the charge-up marksman rifle contains two.
+
+## Reporting problems or missing coverage
+
+Please include as much of the following as possible:
+
+```text
+Game version/build:
+Mod loader and version:
+Other crosshair/UI mods:
+Weapon name:
+Weapon configuration or upgrade tier:
+Scoped or unscoped:
+What remained visible or stopped working:
+Did the issue persist after reloading the save:
+Crash timing, if applicable:
+```
+
+A screenshot or short clip is helpful for remaining markers or broken UI, but
+the weapon name and configuration are the most important details.
+
+## Credits and permissions
+
+- Original concept and mod page: **aidornexus**, [Disable hitmarkers on Nexus
+  Mods](https://www.nexusmods.com/starwarsoutlaws/mods/322)
+- Targeted graph research, testing, and packaging were performed as a
+  community technical investigation.
+
+This repository is an unofficial test handoff, not a claim of ownership over
+the original mod. The original page currently requires permission for modified
+or redistributed versions. Obtain the original author's approval before
+publishing this as a Nexus replacement or incorporating their work.
+
+The original author is welcome to review, incorporate, or publish these
+targeted replacements.
+
+## Development disclosure
+
+OpenAI Codex assisted with binary-format analysis, patch-tool development,
+validation automation, testing documentation, and preparation of this README.
+All shipped binary edits were produced deterministically and checked by the
+validation described above; in-game behavior was verified manually where
+listed.
+
+## Disclaimer
+
+This is an unofficial modification supplied for testing. Back up important
+saves and use it at your own risk. Star Wars and related properties belong to
+their respective owners.
